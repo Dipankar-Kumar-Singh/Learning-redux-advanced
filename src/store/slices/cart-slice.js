@@ -3,36 +3,45 @@ import { createSlice } from "@reduxjs/toolkit";
 const cart = createSlice({
     name : "cart" , 
     initialState : { 
-        itemsCountMap: new Map() ,
-        itemMap : new Map() 
+        items : [] 
      } , 
     reducers : {
         addItemToCart(state , action) {
             const item = action.payload ;
-
-            // { itemid : "dsgdsg" , name : "OK" , price : "034"} ;
-
-            const { id  } = item ;
-            state.itemMap.set(id,item) ;
-
-            let countOfItem = state.itemsCountMap.get(id) ?? 0  ;  
-            countOfItem++ ;
-            state.itemsCountMap.set(id , countOfItem ) ;
+            const { id } = item ;
+        
+            const existingItem = state.items.find((item) => item.id === id) ;
             
+            let countOld =  0 ;
+            if(existingItem){countOld = existingItem.count }    ;
+            const newItem = { ...item , count : countOld + 1 } ;
+
+            // replace the existing item with the new item 
+            if(existingItem) {
+                state.items = state.items.map((item) => item.id === id ? newItem : item ) ;
+            } else {
+                state.items.push(newItem) ;
+            };
+
+            // console.log(state.items);
         },
         removeItemFromCart(state , action){
             const item = action.payload ;
 
             const { id } = item ;
-            let countOfItem = state.itemsCountMap.get(id) ?? 0 ; 
 
+            const existingItem = state.items.find((item) => item.id === id) ;   
+            const newItem = { ...item , count : (existingItem.count ?? 0 ) - 1 } ;
 
-            countOfItem-- ; 
-            countOfItem = Math.max(countOfItem,0) ;
+            if(newItem <= 0){
+                state.items = state.items.filter((item) => item.id !== id) ;
+                return ;
+            }
 
-            state.itemsCountMap.set(id , countOfItem ) ;
-
-            if(countOfItem === 0) state.itemsCountMap.delete(id) ;
+            // replace the existing item with the new item
+            if(existingItem) {
+                state.items = state.items.map((item) => item.id === id ? newItem : item ) ;
+            }
         }
     }
 })
